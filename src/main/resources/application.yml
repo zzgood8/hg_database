@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.1.2:3306/hg_erp_base_huangchao?userUnicode=true&chaaracterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: myuser
+    password: hg38083125
+
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml
