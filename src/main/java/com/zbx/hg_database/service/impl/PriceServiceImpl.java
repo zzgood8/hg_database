@@ -7,10 +7,7 @@ import com.zbx.hg_database.entity.PriceRule;
 import com.zbx.hg_database.service.IPriceService;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @日期 2022/4/17
@@ -23,6 +20,8 @@ public class PriceServiceImpl implements IPriceService {
     private final IPriceDao priceDao;
 
     private List<PriceRule> ruleList;
+
+    private final Set<String> curOrders = new HashSet<>();
 
     public PriceServiceImpl(IPriceDao priceDao) {
         this.priceDao = priceDao;
@@ -41,7 +40,18 @@ public class PriceServiceImpl implements IPriceService {
             return "订单没有报价明细";
         }
 
-        return matchPriceRule(list);
+        String msg;
+        boolean b = curOrders.contains(orderNo);
+
+        if (b) {
+            msg =  "当前订单正在计算报价,请勿重复点击";
+        }else {
+            curOrders.add(orderNo);
+            msg = matchPriceRule(list);
+            curOrders.remove(orderNo);
+        }
+
+        return msg;
     }
 
     /**
@@ -94,6 +104,15 @@ public class PriceServiceImpl implements IPriceService {
         Map<String, Double> changeList = new HashMap<>();
 
         for (PriceElement item : list) {
+            if (Objects.isNull(item.getPartName())) {
+                item.setPartName("");
+            }
+            if (Objects.isNull(item.getMaterialType())) {
+                item.setMaterialType("");
+            }
+            if (Objects.isNull(item.getColor())) {
+                item.setColor("");
+            }
             for (PriceRule rule : ruleList) {
                 a = StrUtil.equals(item.getPartName().trim(),rule.getPartName().trim()) || StrUtil.equals("*",rule.getPartName());
                 b =  StrUtil.equals(item.getMaterialType().trim(),rule.getMaterialType().trim()) || StrUtil.equals("*",rule.getMaterialType());
@@ -105,8 +124,7 @@ public class PriceServiceImpl implements IPriceService {
             }
         }
 
-        System.out.println(changeList.size());
-        return "匹配完成";
+        return "匹配完成,修改" + changeList.size() + "条";
     }
 
 
